@@ -1,0 +1,4 @@
+# One LinkedIn job posting URL per line.
+# Lines starting with # (and blank lines) are ignored.
+# Replace this sample with your 20 URLs.
+https://www.linkedin.com/jobs/view/4427787182/

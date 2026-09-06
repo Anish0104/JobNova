@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LinkedIn Job Source Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 1rem; height: 1rem; border-radius: 9999px;
+      border: 2px solid rgba(148, 163, 184, 0.3);
+      border-top-color: rgb(96, 165, 250);
+      animation: spin 0.7s linear infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
+  <div class="max-w-3xl mx-auto px-4 py-10">
+    <header class="mb-8">
+      <h1 class="text-2xl font-semibold tracking-tight">LinkedIn Job Source Agent</h1>
+      <p class="text-slate-400 text-sm mt-1">
+        Resolve a LinkedIn job posting to the company's real job-listings page.
+      </p>
+    </header>
+
+    <nav class="flex gap-1 mb-6 border-b border-slate-800">
+      <button id="tab-resolve" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-slate-100">
+        Resolve
+      </button>
+      <button id="tab-batch" class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+        Batch test
+      </button>
+    </nav>
+
+    <section id="panel-resolve">
+      <form id="resolve-form" class="flex gap-2 mb-6">
+        <input
+          id="resolve-url"
+          type="text"
+          required
+          placeholder="https://www.linkedin.com/jobs/view/1234567890/"
+          class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          id="resolve-submit"
+          type="submit"
+          class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+        >
+          Resolve
+        </button>
+      </form>
+
+      <div id="status-banner" class="hidden mb-6 rounded-lg px-4 py-3 text-sm"></div>
+
+      <div id="stage-cards" class="space-y-3"></div>
+    </section>
+
+    <section id="panel-batch" class="hidden">
+      <p class="text-slate-400 text-sm mb-3">Paste one LinkedIn job URL per line.</p>
+      <textarea
+        id="batch-urls"
+        rows="6"
+        placeholder="https://www.linkedin.com/jobs/view/1111111111/&#10;https://www.linkedin.com/jobs/view/2222222222/"
+        class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+      ></textarea>
+      <button
+        id="batch-submit"
+        class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors mb-4"
+      >
+        Run batch
+      </button>
+
+      <div id="batch-summary" class="hidden mb-4"></div>
+
+      <div class="overflow-x-auto rounded-lg border border-slate-800">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-900 text-slate-400 text-left">
+            <tr>
+              <th class="px-3 py-2 font-medium">URL</th>
+              <th class="px-3 py-2 font-medium">Status</th>
+              <th class="px-3 py-2 font-medium">Company</th>
+              <th class="px-3 py-2 font-medium">Jobs list URL</th>
+              <th class="px-3 py-2 font-medium">Time</th>
+            </tr>
+          </thead>
+          <tbody id="batch-table-body" class="divide-y divide-slate-800"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
