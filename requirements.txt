@@ -5,6 +5,9 @@ playwright==1.47.0
 python-dotenv
 ddgs
 groq
+httpx
+tldextract
+pytest
 fastapi
 uvicorn[standard]
 sse-starlette
