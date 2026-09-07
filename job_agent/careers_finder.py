@@ -1,3 +1,4 @@
+from time import sleep
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -48,12 +49,35 @@ def _choose_candidate(candidates: list[dict]) -> str:
 
 
 def _search_careers_page(website_url: str) -> str:
-    from ddgs import DDGS
-
     domain = website_url.split("//", 1)[-1].split("/", 1)[0]
     query = f"site:{domain} careers"
-    for result in DDGS().text(query, max_results=8):
+    try:
+        results = _ddg_search(query)
+    except Exception as error:
+        raise RuntimeError(f"Careers page search failed: {error}") from error
+
+    for result in results:
         href = result.get("href") or result.get("link")
         if is_http_url(href):
             return href
     raise RuntimeError("Could not find a careers page")
+
+
+def _ddg_search(query: str, max_results: int = 8, attempts: int = 3) -> list[dict]:
+    """DDG search with a short retry/backoff.
+
+    Without this, a transient rate-limit response (common when many queries
+    run back-to-back, e.g. a 20-URL harness run) surfaces as a raw, unwrapped
+    exception from the ddgs library instead of a clear failure reason.
+    """
+    from ddgs import DDGS
+
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            return list(DDGS().text(query, max_results=max_results))
+        except Exception as error:
+            last_error = error
+            if attempt < attempts - 1:
+                sleep(1.5 * (attempt + 1))
+    raise last_error

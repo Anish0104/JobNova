@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 _MODEL = "llama-3.3-70b-versatile"
 
@@ -14,13 +15,16 @@ def pick_careers_link(candidates: list[dict[str, str]]) -> str | None:
     """Ask Groq to pick the most likely job-listings URL from a short shortlist.
 
     Returns None (never raises) if no API key is configured or the call fails,
-    so callers can fall back to their own heuristic.
+    so callers can fall back to their own heuristic — but every such case is
+    also printed to stderr, so a silent fallback doesn't look identical to
+    "the tiebreaker wasn't needed" in harness/log output.
     """
     if not candidates:
         return None
 
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
+        print("[llm_tiebreaker] GROQ_API_KEY not set — skipping, falling back to heuristic", file=sys.stderr)
         return None
 
     try:
@@ -37,7 +41,8 @@ def pick_careers_link(candidates: list[dict[str, str]]) -> str | None:
             max_tokens=200,
         )
         answer = (response.choices[0].message.content or "").strip()
-    except Exception:
+    except Exception as error:
+        print(f"[llm_tiebreaker] Groq call failed ({error!r}) — falling back to heuristic", file=sys.stderr)
         return None
 
     urls = {candidate["url"] for candidate in candidates}
@@ -46,4 +51,6 @@ def pick_careers_link(candidates: list[dict[str, str]]) -> str | None:
     for url in urls:
         if url in answer:
             return url
+
+    print(f"[llm_tiebreaker] Groq answer {answer!r} matched none of the candidate URLs — falling back to heuristic", file=sys.stderr)
     return None

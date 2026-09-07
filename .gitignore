@@ -4,3 +4,4 @@ __pycache__/
 .env
 *.csv
 node_modules/
+data/results.csv

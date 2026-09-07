@@ -49,3 +49,37 @@ def test_news_article_path_is_penalized():
     score_home = score_candidate("https://harveynichols.com", SLUG, DISPLAY_NAME)
     score_article = score_candidate("https://harveynichols.com/news/2024/some-story", SLUG, DISPLAY_NAME)
     assert score_article == score_home - 3
+
+
+# --- No-separator slug suffix stripping ("unwrapai" -> unwrap.ai) ---
+
+
+def test_no_separator_slug_suffix_strip_matches_exactly():
+    # "unwrapai" has no hyphen, so token-based suffix stripping alone can't
+    # reduce it to "unwrap" — this needs the plain-string suffix strip.
+    assert score_candidate("https://unwrap.ai", "unwrapai", "Unwrap") == 5
+
+
+def test_no_separator_slug_suffix_strip_does_not_match_unrelated_domain():
+    # The stripped suffix itself ("ai") must not become a viable variant on
+    # its own — a candidate whose label is just "ai" should not benefit from
+    # matching the remnant of a stripped suffix.
+    assert score_candidate("https://ai.com", "unwrapai", "Unwrap") == 0
+
+
+# --- Reverse (label-is-prefix-of-slug) matching ("anthropicresearch" -> anthropic.com) ---
+
+
+def test_label_prefix_of_legacy_slug_scores_plus_three():
+    # "anthropicresearch" is Anthropic's real LinkedIn slug (legacy name),
+    # with "anthropic" as a strict prefix — no amount of suffix stripping
+    # turns "research" into a known generic suffix, so this needs the
+    # reverse (label-is-prefix-of-slug) direction specifically.
+    assert score_candidate("https://anthropic.com", "anthropicresearch", "Anthropic") == 3
+
+
+def test_label_substring_but_not_prefix_of_slug_does_not_match():
+    # "research" is also a substring of "anthropicresearch", just not the
+    # brand-name prefix — this must NOT score like a real candidate, or any
+    # word appearing anywhere in a slug could false-positive.
+    assert score_candidate("https://research.com", "anthropicresearch", "Anthropic") == 0

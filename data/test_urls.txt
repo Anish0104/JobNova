@@ -1,4 +1,20 @@
-# One LinkedIn job posting URL per line.
-# Lines starting with # (and blank lines) are ignored.
-# Replace this sample with your 20 URLs.
-https://www.linkedin.com/jobs/view/4427787182/
+https://www.linkedin.com/jobs/view/4448752966/
+https://www.linkedin.com/jobs/view/4120824647/
+https://www.linkedin.com/jobs/view/4450321571/
+https://www.linkedin.com/jobs/view/4450611741/
+https://www.linkedin.com/jobs/view/4454892206/
+https://www.linkedin.com/jobs/view/4434758293/
+https://www.linkedin.com/jobs/view/4437472369/
+https://www.linkedin.com/jobs/view/4428765068/
+https://www.linkedin.com/jobs/view/4461364249/
+https://www.linkedin.com/jobs/view/4457407492/
+https://www.linkedin.com/jobs/view/4456059982/
+https://www.linkedin.com/jobs/view/4453270200/
+https://www.linkedin.com/jobs/view/4438752185/
+https://www.linkedin.com/jobs/view/4331596197/
+https://www.linkedin.com/jobs/view/4460318461/
+https://www.linkedin.com/jobs/view/4427041942/
+https://www.linkedin.com/jobs/view/4458312796/
+https://www.linkedin.com/jobs/view/4414458684/
+https://www.linkedin.com/jobs/view/4397342089/
+https://www.linkedin.com/jobs/view/4455707349/

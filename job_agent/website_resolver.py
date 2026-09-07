@@ -14,6 +14,7 @@ returning a candidate whose score clears a confidence bar.
 
 import re
 from functools import lru_cache
+from time import sleep
 from urllib.parse import urlparse
 
 import httpx
@@ -141,6 +142,27 @@ def _guessed_domains(slug: str) -> list[str]:
     return guesses
 
 
+def _ddg_search(query: str, max_results: int = 10, attempts: int = 3) -> list[dict]:
+    """DDG search with a short retry/backoff.
+
+    Running many queries back-to-back with no delay (e.g. a 20-URL harness
+    run) reliably triggers transient "No results found" responses that have
+    nothing to do with the query itself — a company as unambiguous as
+    "Google" resolves fine in isolation but can fail mid-batch without this.
+    """
+    from ddgs import DDGS
+
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            return list(DDGS().text(query, max_results=max_results))
+        except Exception as error:
+            last_error = error
+            if attempt < attempts - 1:
+                sleep(1.5 * (attempt + 1))
+    raise last_error
+
+
 @lru_cache(maxsize=256)
 def _search_and_score(slug: str, display_name: str) -> str | None:
     """Validated-guess + DuckDuckGo fallback, cached by (slug, display_name)
@@ -160,9 +182,7 @@ def _search_and_score(slug: str, display_name: str) -> str | None:
             candidates[registered] = (url, page_text)
 
     try:
-        from ddgs import DDGS
-
-        raw_results = list(DDGS().text(f"{display_name} official website", max_results=10))
+        raw_results = _ddg_search(f"{display_name} official website")
     except Exception as error:
         if not candidates:
             raise RuntimeError(f"Official website search failed: {error}") from error
@@ -221,7 +241,20 @@ def score_candidate(url: str, slug: str, display_name: str, page_text: str | Non
     score = 0
     if slug_variants and label in slug_variants:
         score += 5
-    elif slug_variants and any(variant in label for variant in slug_variants):
+    elif slug_variants and any(
+        variant in label or (len(label) >= 4 and variant.startswith(label))
+        for variant in slug_variants
+    ):
+        # Forward direction: slug variant found inside a longer label
+        # (harveynichols.com vs slug "harvey"). Reverse direction: the
+        # domain's label is a *prefix* of a longer slug (anthropic.com vs
+        # slug "anthropicresearch", a legacy LinkedIn slug that's the real
+        # company name plus a trailing qualifier) — deliberately a prefix
+        # check, not "appears anywhere in the slug": the latter would also
+        # match e.g. a "research.com" candidate against this same slug,
+        # since "research" is a substring of "anthropicresearch" too, just
+        # not the brand-name part. Guarded to labels of at least 4 chars so
+        # a short label can't trivially prefix-match an unrelated slug.
         score += 3
 
     if page_text:
@@ -251,11 +284,21 @@ def _slug_variants(slug: str) -> list[str]:
     if not tokens:
         return []
 
-    ordered = [t for t in ["".join(tokens)] if t]
+    joined = "".join(tokens)
+    ordered = [joined]
     if len(tokens) > 1 and tokens[-1] in _SLUG_SUFFIXES:
         ordered.append("".join(tokens[:-1]))
     if len(tokens) > 1 and tokens[0] in _SLUG_SUFFIXES:
         ordered.append("".join(tokens[1:]))
+
+    # A slug can carry a generic suffix with no separator at all — e.g.
+    # "unwrapai" for a company at unwrap.ai — so also strip any known
+    # suffix found at the end of the joined slug directly. Guard the
+    # remainder to >=3 chars so this can't reduce a slug to a fragment
+    # short enough to coincidentally match unrelated domains.
+    for suffix in sorted(_SLUG_SUFFIXES, key=len, reverse=True):
+        if joined.endswith(suffix) and len(joined) - len(suffix) >= 3:
+            ordered.append(joined[: -len(suffix)])
 
     seen: set[str] = set()
     deduped = []
