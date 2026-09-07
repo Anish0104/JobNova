@@ -5,3 +5,4 @@ __pycache__/
 *.csv
 node_modules/
 data/results.csv
+data/results.csv

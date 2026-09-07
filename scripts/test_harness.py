@@ -4,19 +4,25 @@ Usage:
     python scripts/test_harness.py
     python scripts/test_harness.py --input data/test_urls.txt --output data/results.csv --headed
 """
-
 import argparse
 import sys
 from pathlib import Path
 
 import pandas as pd
+from dotenv import load_dotenv
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Explicit path, not dotenv's default stack-walking search: this makes
+# .env loading independent of the CWD the script is invoked from.
+load_dotenv(REPO_ROOT / ".env")
+
+sys.path.insert(0, str(REPO_ROOT))
 
 from job_agent.pipeline import resolve_job_listing_url
 
-DEFAULT_INPUT = Path(__file__).resolve().parent.parent / "data" / "test_urls.txt"
-DEFAULT_OUTPUT = Path(__file__).resolve().parent.parent / "data" / "results.csv"
+DEFAULT_INPUT = REPO_ROOT / "data" / "test_urls.txt"
+DEFAULT_OUTPUT = REPO_ROOT / "data" / "results.csv"
 
 
 def load_urls(path: Path) -> list[str]:

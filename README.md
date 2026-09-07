@@ -98,6 +98,23 @@ override the URL list, output path, or run with a visible browser window for deb
 It calls the exact same `resolve_job_listing_url` used by the API, so harness numbers and
 API responses never diverge.
 
+## Batch test results
+
+**17/20 (85%)** against 20 randomly-selected LinkedIn job URLs spanning big tech,
+mid-stage startups, enterprise, and AI companies. The 20 test URLs are committed in
+`data/test_urls.txt` — run `python scripts/test_harness.py` to reproduce.
+
+### Known limitations
+
+- **Google DeepMind** — LinkedIn's job page extraction returned the wrong company
+  (`linkedin.com/company/hud-evals`) — an extraction bug in `linkedin_scraper.py` that
+  we'd address by cross-validating the scraped company name against the URL slug.
+- **Cal State Chancellor's Office** — string-heuristic domain matching can't bridge
+  institutional names to their actual `.edu` domain — would need an LLM-based fallback in
+  the website resolver's low-confidence branch.
+- **Perplexity** — DuckDuckGo returned zero results after 3 retries for the careers-page
+  query — external search availability, not a code path; typically succeeds on re-run.
+
 ## Deploy to Render
 
 1. Push this repo to GitHub (see commands below).
